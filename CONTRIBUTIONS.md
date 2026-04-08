@@ -1,0 +1,13 @@
+Project contributors (sorted alphabetically)
+============================================
+
+* **[Brandon Martinez](https://github.com/bemndy)**
+
+  * ... Initialized repo and django project build chain ...
+  * ... contribution 2 description ...
+
+* **[Chau Tau](https://github.com/team-member-2-github)**
+
+  * ... contribution 1 description ...
+  * ... contribution 2 description ...
+
