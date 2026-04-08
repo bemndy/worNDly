@@ -1,6 +1,6 @@
 # About The Project
 
-This is a space weather application that provides users with space weather phenomena. The app allows users to see what limitations there may be in equipment in space.  
+At its core, worNDly is meant to be a fun game where users get 6 chances to guess a 5-letter word. Each guess provides feedback in the form of color-coded clues, guiding players towards the correct answer. The game combines vocabulary skills with logical deduction, offering a daily challenge that has captured the interest of word enthusiasts around the world.
 
 # Getting Started
 
@@ -118,19 +118,7 @@ weather-space-app/
 │   ├── urls.py
 │   └── asgi.py
 │
-└── /bodies
-│   ├── models.py
-│   ├── views.py
-│   ├── urls.py
-│   └── templates/
-│
-└── /equipment
-│   ├── models.py
-│   ├── views.py
-│   ├── urls.py
-│   └── templates/
-│
-└── /limitations
+└── /login
     ├── models.py
     ├── views.py
     ├── urls.py
