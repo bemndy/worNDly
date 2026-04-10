@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Login - worNDly{% endblock %}
+{% block content %}
+
+<div class="container">
+  <div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="col-md-4">
+      <h2 class="text-center mb-4" style="font-family: sans-serif; font-weight: bold; color: #585858">Logged Out</h2>
+        <p class="text-center">You have been logged out.</p>
+        <button class="form-control btn btn-primary" style="background-color: #00d3c1;">
+            <a class="text-decoration-none text-white" href="/login">Return to Login</a>
+        </button>
+
+        {% if user.is_authenticated %}
+          <p class="text-center">Your account doesn't have access to this page.</p>
+        {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}
