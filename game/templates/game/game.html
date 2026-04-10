@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Game - worNDly{% endblock %}
+{% block content %}
+
+<div class="container mt-5">
+    <div class="columns-md">
+
+      {% if user.is_authenticated %}
+        <p>Welcome, {{ user.username }}!</p>
+      {% endif %}
+
+      <h1>Game</h1>
+        <p>Welcome to the game!</p>
+
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button type="submit">Logout</button>
+        </form>
+    </div>    
+</div>
+
+{% endblock %}
