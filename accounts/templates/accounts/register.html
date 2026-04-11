@@ -13,8 +13,16 @@
           <a href="/" class="btn" style="background-color: #585858; color: white;">Return</a>
         </div>
       {% else %}
+        {% if error %}
+          <p class="text-danger">{{ error }}</p>
+        {% endif %}
+
         <form method="post" action="{% url 'signup' %}">
           {% csrf_token %}
+          <div class="mb-3">
+            <label for="name" class="form-label">Name (optional)</label>
+            <input type="text" class="form-control" id="name" name="name">
+          </div>
           <div class="mb-3">
             <label for="username" class="form-label">Username</label>
             <input type="text" class="form-control" id="username" name="username" required>
