@@ -5,14 +5,21 @@ from django.contrib.auth.models import User
 
 def RegisterView(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
-        if not username:
-            username = 'no_username' # default username if not provided
-        password = request.POST.get('password')
-        email = request.POST.get('email')
+        name = request.POST.get('name', '')       # optional
+        username = request.POST.get('username', '')
+        email = request.POST.get('email', '')
+        password = request.POST.get('password', '')
+
+        # validate required fields
+        if not username or not email or not password:
+            return render(request, 'accounts/register.html', {'error': 'Username, email, and password are required.'})
+
+        if User.objects.filter(username=username).exists():
+            return render(request, 'accounts/register.html', {'error': 'Username already taken.'})
 
         # create the user object and save it to the database
         user = User.objects.create_user(username=username, password=password, email=email)
+        user.first_name = name  # optional name field
         user.save()
-        return render(request, 'accounts/login.html', {'success': 'Registration successful. Please log in to verify.'})
+        return render(request, 'accounts/login.html', {'success': 'Registration successful. Please log in.'})
     return render(request, 'accounts/register.html')
