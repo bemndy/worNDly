@@ -21,59 +21,48 @@ python --version
 git --version
 ```
 
-
-
 ## Installation
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/bemndy/weather-space-app.git
-cd weather-space-app 
+git clone https://github.com/bemndy/worNDly.git
+cd worNDly
 ```
 
-
 ### 2. Create a Virtual Environment
-
-Create a virtual environment to isolate project dependencies.
 
 Mac/Linux:
 
 ```bash
-python3 -m venv venv
+python3 -m venv .venv
 ```
 
 Windows:
 
 ```bash
-python -m venv venv
+python -m venv .venv
 ```
-
-
 
 ### 3. Activate the Virtual Environment
 
 Mac/Linux:
 
 ```bash
-source venv/bin/activate
+source .venv/bin/activate
 ```
 
 Windows:
 
 ```bash
-venv\Scripts\activate
+.venv\Scripts\activate
 ```
 
-
 ### 4. Install Dependencies
-
-Install all required Python packages.
 
 ```bash
 pip install -r requirements.txt
 ```
-
 
 ### 5. Apply Database Migrations
 
@@ -81,13 +70,11 @@ pip install -r requirements.txt
 python manage.py migrate
 ```
 
-
 ### 6. Create a Superuser (Optional)
 
 ```bash
 python manage.py createsuperuser
 ```
-
 
 ### 7. Run the Development Server
 
@@ -101,13 +88,10 @@ Open your browser and go to:
 http://127.0.0.1:8000/
 ```
 
-
 # Project Structure
 
-Describe here how you organized your repo. For example:
-
 ```
-weather-space-app/
+worNDly/
 │
 ├── manage.py
 ├── requirements.txt
@@ -116,12 +100,45 @@ weather-space-app/
 ├── config/
 │   ├── settings.py
 │   ├── urls.py
-│   └── asgi.py
+│   ├── asgi.py
+│   └── wsgi.py
 │
-└── /login
-    ├── models.py
+├── accounts/
+│   ├── views.py
+│   ├── models.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations/
+│   └── templates/
+│       ├── base.html
+│       └── accounts/
+│           ├── register.html
+│           ├── login.html
+│           └── logout.html
+│
+└── game/
     ├── views.py
-    ├── urls.py
+    ├── models.py
+    ├── admin.py
+    ├── apps.py
+    ├── migrations/
     └── templates/
-
+        ├── base.html
+        └── game/
+            └── game.html
 ```
+
+# Phase 1 Deliverables
+
+| Deliverable | Location |
+|-------------|----------|
+| Phase 1 Report | `Phase_1_Report_Group22.pdf` (root of repo and Gradescope) |
+| Source Code | Root of repo (`config/`, `accounts/`, `game/`) |
+| README | `README.md` |
+| CONTRIBUTIONS | `CONTRIBUTIONS.md` |
+
+**Features implemented:** 
+
+1.1 (Create User Profile),
+1.2 (Log-in),
+1.3 (Log-out)
