@@ -3,17 +3,19 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from datetime import date
 import json
-from .models import GameSession, Guess
+from .models import GameSession, Guess, DailyPlayCount
 import random
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.http import JsonResponse
+from datetime import timedelta
+from django.db.models import Count
 
 
 from django.conf import settings
 import os
 
-MAX_FREE_GAMES_PER_DAY = 3
+MAX_FREE_GAMES_PER_DAY = 100
 LANGUAGE_INFO = {
     'de': {'label': 'German'},
     'es': {'label': 'Spanish'},
@@ -24,6 +26,16 @@ LANGUAGE_INFO = {
 WORDS_DIR = os.path.join(settings.BASE_DIR, 'words')
 MAX_ATTEMPTS = 6
 
+
+### HELPERS ###
+def get_daily_record(user):
+    today = date.today()
+    obj, _ = DailyPlayCount.objects.get_or_create(user=user, date=today)
+    return obj
+def increment_daily_count(user):
+    record = get_daily_record(user)
+    record.count += 1
+    record.save()
 
 def get_word_list(language):
     filepath = os.path.join(WORDS_DIR, f'{language}.txt')
@@ -61,36 +73,77 @@ def evaluate_guess(guess_word, target_word):
 
 
 
+
+### Requests ###
 def GameView(request):
     """Root game entry point — redirect to language select."""
     if not request.user.is_authenticated:
         return redirect('login')
     return redirect('language_select')
 
-def get_daily_record(user):
-    today = date.today()
-    # obj, _ = DailyPlayCount.objects.get_or_create(user=user, date=today)
-    # return obj
-
-
 
 @login_required
 def language_select(request):
-    # record = get_daily_record(request.user)
-    # free_remaining = max(0, MAX_FREE_GAMES_PER_DAY - record.count)
-    # return render(request, 'game/language_select.html', {
-    #     'language_info': LANGUAGE_INFO,
-    #     'played_today': record.count,
-    #     'free_remaining': free_remaining,
-    #     'max_free': MAX_FREE_GAMES_PER_DAY,
-    #     'can_play': free_remaining > 0,
-    # })
+    record = get_daily_record(request.user)
+    free_remaining = max(0, MAX_FREE_GAMES_PER_DAY - record.count)
+
+    now = timezone.now()
+    period = request.GET.get('period', 'all')
+    completed_games = GameSession.objects.filter(
+        user=request.user,
+        status__in=['won', 'lost'], # no active games
+    )
+
+    if period == 'week':
+        completed_games = completed_games.filter(completed_at__gte=now - timedelta(weeks=1))
+    elif period == 'month':
+        completed_games = completed_games.filter(completed_at__gte=now - timedelta(days=30))
+    elif period == 'year':
+        completed_games = completed_games.filter(completed_at__gte=now - timedelta(days=365))
+
+    completed_games = completed_games.order_by('-completed_at')
+    total_played = completed_games.count()
+    total_won    = completed_games.filter(status='won').count()
+    win_rate     = round((total_won / total_played * 100)) if total_played else 0
+
+
+    attempt_dist_qs = (
+        completed_games
+        .filter(status='won')
+        .values('attempts_used')
+        .annotate(total=Count('attempts_used'))
+        .order_by() 
+    )
+
+    attempt_dict = {row['attempts_used']: row['total'] for row in attempt_dist_qs}
+    attempt_dist_list = [attempt_dict.get(i, 0) for i in range(1, 7)]
+
+
+    plays = []
+    for game in completed_games:
+        plays.append({
+            'word':     game.target_word,
+            'date':     game.completed_at.strftime('%b %d, %Y') if game.completed_at else '—',
+            'passed':   game.status == 'won',
+            'attempts': game.attempts_used,
+        })
+
+
     return render(request, 'game/language_select.html', {
         'language_info': LANGUAGE_INFO,
-        'played_today': 0,
-        'free_remaining': 3,
+        'played_today': record.count,
+        'free_remaining': free_remaining,
         'max_free': MAX_FREE_GAMES_PER_DAY,
-        'can_play': 3 > 0,
+        'can_play': free_remaining > 0,
+        # dashboard 1
+        'period': period,
+        'total_played': total_played,
+        'total_won': total_won,
+        'win_rate': win_rate,
+        'attempt_dist_json':  json.dumps(attempt_dist_list),
+
+        # dashboard 2
+        'plays': plays,
     })
 
 
@@ -105,6 +158,8 @@ def start_game(request, language):
         language=language,
         target_word=chosen_word,
     )
+
+    increment_daily_count(request.user)
     return redirect('play_game', game_id=game.id)
 
 @login_required
@@ -183,4 +238,13 @@ def submit_guess(request, game_id):
         'target_word': game.target_word if game_over else None,
         'status': game.status,
     })
+
+@login_required
+def buy_plays(request):
+    record = get_daily_record(request.user)
+    return render(request, 'game/buy_plays.html', {
+        'played_today': record.count,
+        'max_free': MAX_FREE_GAMES_PER_DAY,
+    })
+
 

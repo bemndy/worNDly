@@ -25,11 +25,38 @@ class GameSession(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
     is_paid = models.BooleanField(default=False)
 
+    def __str__(self):
+        return f"{self.target_word} {self.status} {self.attempts_used}"
+
 class Guess(models.Model):
     game = models.ForeignKey(GameSession, on_delete=models.CASCADE, related_name='guess_set')
     attempt_number = models.IntegerField()
     word = models.CharField(max_length=5)
     result = models.JSONField()  # list of 'correct' | 'present' | 'absent'
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['game', 'attempt_number'],
+                name='unique_game_attempt'
+            )
+        ]
     def __str__(self):
         return f"Game {self.game.id} | Attempt {self.attempt_number}: {self.word}"
+    
+
+class DailyPlayCount(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='daily_plays')
+    date = models.DateField()
+    count = models.IntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'date'],
+                name='unique_user_date'
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} | {self.date} | {self.count} plays"
