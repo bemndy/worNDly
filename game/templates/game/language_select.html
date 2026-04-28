@@ -2,6 +2,9 @@
 {% block title %}Play - worNDly{% endblock %}
 {% block content %}
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+
 <div>
   <!-- Logo -->
   <div class="text-center mb-4">
@@ -20,20 +23,112 @@
         </a>
       {% endfor %}
     </div>
+  {% else %}
+    <div>
+      <h5> Daily limit reached</h5>
+          <a href="{% url 'buy_plays' %}" class="btn">
+            Buy More Plays
+          </a>
+    </div>
   {% endif %}
+
+
+  <div>
+    You have {{free_remaining}} plays remaining
+  </div>
+
+
+    <div class="filter-row">
+      <span class="filter-label">Show:</span>
+      <a href="?period=week"  class="filter-btn {% if period == 'week'  %}active{% endif %}">Last week</a>
+      <a href="?period=month" class="filter-btn {% if period == 'month' %}active{% endif %}">Last month</a>
+      <a href="?period=year"  class="filter-btn {% if period == 'year'  %}active{% endif %}">Last year</a>
+      <a href="?period=all"   class="filter-btn {% if period == 'all' or not period %}active{% endif %}">All time</a>
+    </div>
+
+
+  <div>
+      'period': {{period}},
+      'total_played': {{total_played}},
+      'total_won': {{total_won}},
+      'win_rate': {{win_rate}},
+  </div>
+
+  <div style="width:400px;">
+    <canvas id="distributionChart"></canvas>
+  </div>
+
+
+
+  <div>
+      <h3>Game History</h3>
+      {% for entry in plays %}
+          <p>
+              Word: {{ entry.word }}
+              Date: {{ entry.date }} - 
+              Status: {% if entry.passed %}Won{% else %}Lost{% endif %} - 
+              Attempts: {{ entry.attempts }}
+          </p>
+      {% empty %}
+          <p>No games played in this period.</p>
+      {% endfor %}
+  </div>
+
+
+
 
 </div>
 
+    <script>
+      const django_data = {{attempt_dist_json|safe}}
+      console.log({{plays_json|safe}})
 
 
 
-
-
-
-
-
-
-
-
+        let ctx = document.getElementById('distributionChart').getContext('2d');
+        let distributionChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['1', '2', '3', '4', '5', '6'], // X-axis labels
+                datasets: [{
+                    label: 'Number of Attempts Distribution',
+                    data: django_data, // sample distribution data
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: {
+                    title: {
+                        display: true, // If you set to false, this will hide the title
+                        text: 'Guess Distribution' // specify the chart title
+                    },
+                    legend: {
+                        display: false // This will hide the legend
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true // Y-axis starts at 0
+                    }
+                }
+            }
+        });
+    </script>
 
 {% endblock %}
