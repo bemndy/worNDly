@@ -1,22 +1,179 @@
 {% extends "base.html" %}
 {% block title %}Game - worNDly{% endblock %}
+
 {% block content %}
+<style>
+  .wl-tile { text-transform: uppercase; user-select: none; }
+  .wl-tile[data-state="correct"] { background: #538d4e; border-color: #538d4e !important; color: #fff; }
+  .wl-tile[data-state="present"] { background: #b59f3b; border-color: #b59f3b !important; color: #fff; }
+  .wl-tile[data-state="absent"]  { background: #787c7e; border-color: #787c7e !important; color: #fff; }
+</style>
 
-<div class="container mt-5">
-    <div class="columns-md">
+<div class="container" style="max-width: 350px;">
 
-      {% if user.is_authenticated %}
-        <p>Welcome, {{ user.username }}!</p>
-      {% endif %}
 
-      <h1>Game</h1>
-        <p>Welcome to the game!</p>
+  <h1>
+    Gaming
+  </h1>
 
-        <form method="post" action="{% url 'logout' %}">
-          {% csrf_token %}
-          <button type="submit">Logout</button>
-        </form>
-    </div>    
+  
+  {% for row in "012345" %}
+    <div class="row g-1 mb-1 justify-content-center" id="wl-row-{{ forloop.counter0 }}">
+      {% for col in "01234" %}
+        <div class="col-auto">
+          <div class="wl-tile border border-2 d-flex"
+               id="wl-tile-{{ forloop.parentloop.counter0 }}-{{ forloop.counter0 }}"
+               style="width: 58px; height: 58px">
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endfor %}
+
+
+
+
+  <!-- result screen -->
+  <div>
+      <a href="{% url 'language_select' %}" class="btn">
+        Play Again
+      </a>
+  </div>
 </div>
 
+<script>
+
+    // Configuration from Django
+    const GAME_ID      = {{ game.id }};
+    const MAX_ATTEMPTS = {{ max_attempts }};
+    const GAME_STATUS  = "{{ game.status }}";
+    const TARGET_WORD  = "{{ game.target_word }}";
+    const WORD_LIST    = new Set({{ word_list_json|safe }});
+    const CSRF         = "{{ csrf_token }}";
+    const GUESS_URL    = "{% url 'submit_guess' game.id %}";
+    const PREV_GUESSES = {{ guesses_json|safe }};
+
+
+    console.log(GAME_STATUS)
+    let gameOver    = GAME_STATUS !== 'active';
+    let currentRow  = PREV_GUESSES.length;
+    let currentCol  = 0;
+    let currentGuess = [];
+
+
+
+    console.log(`[worNDly] Target word: ${TARGET_WORD.toUpperCase()}`);
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log(PREV_GUESSES)
+        PREV_GUESSES.forEach((guess, rowIndex) => {
+            console.log(guess, rowIndex)
+            const letters = guess.word.split('');
+            letters.forEach((char, colIndex) => {
+                const tile = document.getElementById(`wl-tile-${rowIndex}-${colIndex}`);
+                if (tile) {
+                    tile.textContent = char;
+                    tile.dataset.state = guess.result[colIndex];
+                }
+            });
+        });
+    });
+
+
+    const tile = (r, c) => document.getElementById(`wl-tile-${r}-${c}`);
+
+    const setTile = (r, c, letter, state) => {
+      const t = tile(r, c);
+      t.textContent = letter.toUpperCase();
+    }
+
+
+    function addLetter(ch) {
+      if(gameOver || currentCol >= 5) {return}
+      const t = tile(currentRow, currentCol);
+      t.textContent = ch.toUpperCase();
+      currentGuess.push(ch);
+      currentCol++;
+    }
+
+
+    function removeLetter() {
+      if (gameOver || currentCol <= 0) return;
+      currentCol--;
+      currentGuess.pop();
+      const t = tile(currentRow, currentCol);
+      t.textContent = '';
+    }
+
+    async function submitGuess() {
+      if (gameOver) return;
+      if (currentGuess.length < 5) {
+        return;
+      }
+
+      const word = currentGuess.join('');
+      if (!WORD_LIST.has(word)) {
+        return
+      }
+
+
+      gameOver = true; // lock everything
+
+      try {
+        const res  = await fetch(GUESS_URL, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
+          body: JSON.stringify({word}),
+        });
+
+        if (!res.ok) {
+            console.log('Something went wrong');
+          gameOver = false;
+            return;
+        }
+
+        const data = await res.json()
+        console.log('Server response:', JSON.stringify(data)); // Add this
+
+        data.result.forEach((state, i) => {
+          const t = tile(currentRow, i);
+          t.dataset.state = state;  // "correct", "present", or "absent"
+        });
+
+
+        if(data.game_over) {
+          gameOver = true
+          console.log('game over!')
+        }
+        else {
+          gameOver = false;
+        }
+
+
+        currentRow++;
+        currentCol = 0;
+        currentGuess = [];
+      } catch (err) {
+        gameOver = false;
+        console.log(err)
+      }
+    }
+
+
+    document.addEventListener('keydown', e => {
+      if (/^[a-zA-Z]$/.test(e.key)) {
+        console.log('key down')
+        addLetter(e.key.toLowerCase());
+      }
+      else if (e.key === 'Backspace') {
+        removeLetter();
+      }
+      else if(e.key === 'Enter') {
+        submitGuess();
+      }
+      
+    });
+
+
+
+</script>
 {% endblock %}

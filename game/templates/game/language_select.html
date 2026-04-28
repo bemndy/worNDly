@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Play - worNDly{% endblock %}
+{% block content %}
+
+<div>
+  <!-- Logo -->
+  <div class="text-center mb-4">
+    <h1>
+      worNDly
+    </h1>
+  </div>
+
+  {% if can_play %}
+    <p>Choose your language:</p>
+    
+    <div>
+      {% for code, info in language_info.items %}
+        <a href="{% url 'start_game' code %}">
+          <span>{{ info.label }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}
