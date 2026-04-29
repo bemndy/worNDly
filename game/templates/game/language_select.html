@@ -59,7 +59,7 @@
     </div>
 
     <!-- Button section -->
-    <a href="{% url 'buy_plays' %}" class="btn btn-info text-white fw-bold text-uppercase text-decoration-none w-100">Buy More Plays</a>
+    <a href="{% url 'tokens' %}" class="btn btn-info text-white fw-bold text-uppercase text-decoration-none w-100">Buy More Plays</a>
     <form method="post" action="{% url 'logout' %}" class="w-100">
       {% csrf_token %}
       <button type="submit" class="btn btn-info text-uppercase text-white w-100">Logout</button>
