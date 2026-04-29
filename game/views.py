@@ -140,10 +140,11 @@ def language_select(request):
         'total_played': total_played,
         'total_won': total_won,
         'win_rate': win_rate,
-        'attempt_dist_json':  json.dumps(attempt_dist_list),
+        'attempt_dist_json': json.dumps(attempt_dist_list),
 
         # dashboard 2
         'plays': plays,
+        'plays_json': json.dumps(plays),
     })
 
 
