@@ -2,88 +2,90 @@
 {% block title %}Play - worNDly{% endblock %}
 {% block content %}
 
+<!-- Chart.js import -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 
 
-<div>
-  <!-- Logo -->
-  <div class="text-center mb-4">
-    <h1>
-      worNDly
-    </h1>
-  </div>
-
-  {% if can_play %}
-    <p>Choose your language:</p>
-    
-    <div>
-      {% for code, info in language_info.items %}
-        <a href="{% url 'start_game' code %}">
-          <span>{{ info.label }}</span>
-        </a>
-      {% endfor %}
+<div class="d-flex flex-row justify-content-center border border-4 border-dark p-4 gap-5 w-75">
+    <div class="d-flex flex-column p-4 w-40 gap-4">
+      <!-- match styling to example prof. Santos has, maybe switch flex row or column -->
+      <div class="">
+        <h3 class="text-uppercase fw-bold">Statistics</h3>
+      </div>
+      <div class="d-flex flex-row gap-5">
+          <div class="d-flex flex-column">
+            <h1 class="display-2">{{total_played}}</h1>
+            <h5 class="text-center text-muted">Played</h5>
+          </div>
+          <div>
+            <h1 class="display-2">{{win_rate}}</h1>
+            <h5 class="text-center text-muted">Win %</h5>
+          </div>
+      </div>
+      <div style="width:400px;">
+        <canvas id="distributionChart"></canvas>
+      </div>
+    <!-- filtered buttons for statistics -->
+      <ul class="nav nav-pills gap-3">
+        <span class="text-uppercase fw-bold ">Show:</span>
+        <a href="?period=week"  class="text-decoration-none text-uppercase {% if period == 'week'  %}active{% endif %}">Last week</a>
+        <a href="?period=month" class="text-decoration-none text-uppercase {% if period == 'month' %}active{% endif %}">Last month</a>
+        <a href="?period=year"  class="text-decoration-none text-uppercase {% if period == 'year'  %}active{% endif %}">Last year</a>
+      <a href="?period=all"   class="text-decoration-none text-uppercase {% if period == 'all' or not period %}active{% endif %}">All time</a>
+      </ul>
     </div>
-  {% else %}
-    <div>
-      <h5> Daily limit reached</h5>
-          <a href="{% url 'buy_plays' %}" class="btn">
-            Buy More Plays
+  <!-- TODO: convert this to footer html file -->
+  <div class="d-flex flex-column p-4 w-40 gap-4">
+    {% if can_play %}
+    <div class="list-group gap-3">
+      <h4 class="text-uppercase fw-bold">Choose your language:</h4>
+      <div>
+        {% for code, info in language_info.items %}
+          <a class="list-group-item list-group-item-action" href="{% url 'start_game' code %}">
+            <span>{{ info.label }}</span>
           </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div>
+        <h5> Daily limit reached</h5>
+      </div>
+    {% endif %}
     </div>
-  {% endif %}
-
-
-  <div>
-    You have {{free_remaining}} plays remaining
-  </div>
-
-
-    <div class="filter-row">
-      <span class="filter-label">Show:</span>
-      <a href="?period=week"  class="filter-btn {% if period == 'week'  %}active{% endif %}">Last week</a>
-      <a href="?period=month" class="filter-btn {% if period == 'month' %}active{% endif %}">Last month</a>
-      <a href="?period=year"  class="filter-btn {% if period == 'year'  %}active{% endif %}">Last year</a>
-      <a href="?period=all"   class="filter-btn {% if period == 'all' or not period %}active{% endif %}">All time</a>
+    <div>
+      <span class="text-muted text-center fs-5">
+        You have {{free_remaining}} plays remaining
+      </span>
     </div>
 
+    <!-- Button section -->
+    <a href="{% url 'buy_plays' %}" class="btn btn-info text-white fw-bold text-uppercase text-decoration-none w-100">Buy More Plays</a>
+    <form method="post" action="{% url 'logout' %}" class="w-100">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-info text-uppercase text-white w-100">Logout</button>
+    </form>
 
-  <div>
-      'period': {{period}},
-      'total_played': {{total_played}},
-      'total_won': {{total_won}},
-      'win_rate': {{win_rate}},
+
   </div>
-
-  <div style="width:400px;">
-    <canvas id="distributionChart"></canvas>
-  </div>
-
-
-
-  <div>
-      <h3>Game History</h3>
-      {% for entry in plays %}
-          <p>
-              Word: {{ entry.word }}
-              Date: {{ entry.date }} - 
-              Status: {% if entry.passed %}Won{% else %}Lost{% endif %} - 
-              Attempts: {{ entry.attempts }}
-          </p>
-      {% empty %}
-          <p>No games played in this period.</p>
-      {% endfor %}
-  </div>
-
-
-
-
 </div>
-
+<div class="d-flex flex-column mt-5 border border-4 border-dark p-4 w-75 gap-4 ">
+  <h3 class="display-5 text-center">Game History</h3>
+  {% for entry in plays %}
+      <ul class="list-unstyled d-flex flex-row gap-2 align-items-center">
+        <span class="text-muted text-bg-light text-uppercase">{{ entry.date }}</span>
+        <span class="text-bg-info text-uppercase">{{ entry.word }}</span>    
+        {% if entry.passed %}<span class="badge bg-success">Won</span>{% else %}<span class="badge bg-danger">Lost</span>{% endif %}
+        <span class="text-muted text-bg-light text-uppercase">Attemps: {{ entry.attempts }}</span>
+      </ul>
+  {% empty %}
+      <p>No games played in this period.</p>
+  {% endfor %}
+</div>
+<!-- Chart.js configuration -->
+</div>
     <script>
       const django_data = {{attempt_dist_json|safe}}
       console.log({{plays_json|safe}})
-
-
 
         let ctx = document.getElementById('distributionChart').getContext('2d');
         let distributionChart = new Chart(ctx, {
@@ -113,6 +115,7 @@
                 }]
             },
             options: {
+                indexAxis: 'y', // makes bars horizontal
                 plugins: {
                     title: {
                         display: true, // If you set to false, this will hide the title
@@ -130,5 +133,4 @@
             }
         });
     </script>
-
 {% endblock %}

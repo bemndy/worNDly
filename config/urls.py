@@ -33,13 +33,16 @@ urlpatterns = [
     path('', home, name='home'),
     path('admin/', admin.site.urls),
     path('game/', game_views.GameView, name='game'),
+    path('game/select/', game_views.language_select, name='language_select'),
+    path('game/buy/', game_views.buy_plays, name='buy_plays'),
+    path('game/<str:language>/start/', game_views.start_game, name='start_game'),
+    path('game/<int:game_id>/play/', game_views.play_game, name='play_game'),
+    path('game/<int:game_id>/guess/', game_views.submit_guess, name='submit_guess'),
     path('login/', LoginView.as_view(
-        template_name='accounts/login.html', 
+        template_name='accounts/login.html',
         next_page='/game/',
         redirect_authenticated_user=True
     ), name='login'),
-    path('logout/', LogoutView.as_view(
-        template_name='accounts/logout.html',
-    ), name='logout'),
+    path('logout/', LogoutView.as_view(next_page='/login/'), name='logout'),
     path('signup/', accounts_views.RegisterView, name='signup'),
 ]

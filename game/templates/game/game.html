@@ -9,40 +9,26 @@
   .wl-tile[data-state="absent"]  { background: #787c7e; border-color: #787c7e !important; color: #fff; }
 </style>
 
-<div class="container" style="max-width: 350px;">
-
-
-  <h1>
-    Gaming
-  </h1>
-
-  
-  {% for row in "012345" %}
-    <div class="row g-1 mb-1 justify-content-center" id="wl-row-{{ forloop.counter0 }}">
-      {% for col in "01234" %}
-        <div class="col-auto">
-          <div class="wl-tile border border-2 d-flex"
-               id="wl-tile-{{ forloop.parentloop.counter0 }}-{{ forloop.counter0 }}"
-               style="width: 58px; height: 58px">
+<div class="d-flex flex-column justify-items-center">
+  <div class="container mt-5" style="max-width: 350px;">
+    {% for row in "012345" %}
+      <div class="row g-1 mb-1 justify-content-center" id="wl-row-{{ forloop.counter0 }}">
+        {% for col in "01234" %}
+          <div class="col-auto">
+            <div class="wl-tile border border-2 d-flex"
+                id="wl-tile-{{ forloop.parentloop.counter0 }}-{{ forloop.counter0 }}"
+                style="width: 58px; height: 58px">
+            </div>
           </div>
-        </div>
-      {% endfor %}
-    </div>
-  {% endfor %}
+        {% endfor %}
+      </div>
+    {% endfor %}
 
-
-
-
-  <!-- result screen -->
-  <div>
-      <a href="{% url 'language_select' %}" class="btn">
-        Play Again
-      </a>
-  </div>
-</div>
+    <!-- result screen -->
+    <p id="wl-reveal" class="text-center text-muted mt-3 text-uppercase fw-bold" style="display:none; letter-spacing:0.2em;"></p>
+    <a href="{% url 'language_select' %}" class="btn btn-info text-white fw-bold text-uppercase text-decoration-none mt-2">Play Again</a>
 
 <script>
-
     // Configuration from Django
     const GAME_ID      = {{ game.id }};
     const MAX_ATTEMPTS = {{ max_attempts }};
@@ -52,17 +38,21 @@
     const CSRF         = "{{ csrf_token }}";
     const GUESS_URL    = "{% url 'submit_guess' game.id %}";
     const PREV_GUESSES = {{ guesses_json|safe }};
-
-
+    
     console.log(GAME_STATUS)
     let gameOver    = GAME_STATUS !== 'active';
     let currentRow  = PREV_GUESSES.length;
     let currentCol  = 0;
     let currentGuess = [];
 
-
-
     console.log(`[worNDly] Target word: ${TARGET_WORD.toUpperCase()}`);
+
+    function showReveal() {
+      const el = document.getElementById('wl-reveal');
+      el.textContent = TARGET_WORD.toUpperCase();
+      el.style.display = 'block';
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       console.log(PREV_GUESSES)
         PREV_GUESSES.forEach((guess, rowIndex) => {
@@ -76,8 +66,12 @@
                 }
             });
         });
-    });
 
+        if (GAME_STATUS !== 'active') {
+          const won = PREV_GUESSES.some(g => g.result.every(s => s === 'correct'));
+          if (!won) showReveal();
+        }
+    });
 
     const tile = (r, c) => document.getElementById(`wl-tile-${r}-${c}`);
 
@@ -86,7 +80,6 @@
       t.textContent = letter.toUpperCase();
     }
 
-
     function addLetter(ch) {
       if(gameOver || currentCol >= 5) {return}
       const t = tile(currentRow, currentCol);
@@ -94,7 +87,6 @@
       currentGuess.push(ch);
       currentCol++;
     }
-
 
     function removeLetter() {
       if (gameOver || currentCol <= 0) return;
@@ -114,7 +106,6 @@
       if (!WORD_LIST.has(word)) {
         return
       }
-
 
       gameOver = true; // lock everything
 
@@ -139,15 +130,14 @@
           t.dataset.state = state;  // "correct", "present", or "absent"
         });
 
-
         if(data.game_over) {
-          gameOver = true
-          console.log('game over!')
+          gameOver = true;
+          const won = data.result.every(s => s === 'correct');
+          if (!won) showReveal();
         }
         else {
           gameOver = false;
         }
-
 
         currentRow++;
         currentCol = 0;
@@ -157,7 +147,6 @@
         console.log(err)
       }
     }
-
 
     document.addEventListener('keydown', e => {
       if (/^[a-zA-Z]$/.test(e.key)) {
@@ -170,10 +159,6 @@
       else if(e.key === 'Enter') {
         submitGuess();
       }
-      
     });
-
-
-
 </script>
 {% endblock %}
