@@ -3,15 +3,14 @@
 {% block content %}
 
 <div class="container">
-  <div class="d-flex justify-content-center align-items-center vh-100">
-    <div class="col-md-4">
-      <h2 class="text-center mb-4" style="font-family: sans-serif; font-weight: bold; color: #585858">worNDly</h2>
+  <div class="d-flex justify-content-center pt-5 vh-100">
+    <div class="col-md-5">
 
       {% if user.is_authenticated %}
         <p class="text-center">Your account doesn't have access to this page.</p>
         <div class="d-grid gap-2">
-          <a href="/" class="btn" style="background-color: #585858; color: white;">Return</a>
-        </div>
+        <span class="btn" style="background-color: #585858; color: white;">Return</span>
+      </div>
       {% else %}
         {% if error %}
           <p class="text-danger">{{ error }}</p>
@@ -50,8 +49,8 @@
           <!-- maybe in the future -->
 
           <div class="d-grid gap-2">
-            <button type="submit" class="btn" style="background-color: #00d3c1; color: white; font-weight: bold;">Create Account</button>
-            <a href="/login/" class="btn" style="background-color: #585858; color: white;">Already have an account? Log In</a>
+            <button type="submit" class="btn btn-info text-white fw-bold text-uppercase">Create Account</button>
+            <a href="/login/" class="btn btn-secondary text-white fw-bold text-uppercase text-decoration-none w-100">Already have an account? Log In</a>
           </div>
         </form>
       {% endif %}

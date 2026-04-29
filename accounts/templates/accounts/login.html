@@ -3,10 +3,8 @@
 {% block content %}
 
 <div class="container">
-  <div class="d-flex justify-content-center align-items-center vh-100">
-    <div class="col-md-4">
-      <h2 class="text-center mb-4" style="font-family: sans-serif; font-weight: bold; color: #585858">worNDly</h2>
-
+  <div class="d-flex justify-content-center vh-100 pt-5">
+    <div class="col-md-5">
       {% if form.errors %}
         <p class="text-danger text-center">Your username or password didn't match. Please try again.</p>
       {% endif %}
@@ -25,13 +23,13 @@
           <label for="username" class="form-label">Username</label>
           <input type="text" class="form-control" id="username" name="username" required>
         </div>
-        <div class="mb-3">
+        <div class="mb-4">
           <label for="password" class="form-label">Password</label>
           <input type="password" class="form-control" id="password" name="password" required>
         </div>
-        <div class="d-grid gap-2">
-          <button type="submit" class="btn" style="background-color: #00d3c1; color: white; font-weight: bold;">Log In</button>
-          <a href="/signup/" class="btn" style="background-color: #585858; color: white;">Create Account</a>
+        <div class="d-grid gap-3">
+          <button type="submit" class="btn btn-info text-white fw-bold text-uppercase">Log In</button>
+          <a href="/signup/" class="btn btn-secondary text-white fw-bold text-uppercase text-decoration-none w-100">Create Account</a>
         </div>
       </form>
 
