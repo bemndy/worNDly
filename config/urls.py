@@ -45,5 +45,6 @@ urlpatterns = [
     ), name='login'),
     path('logout/', LogoutView.as_view(next_page='/login/'), name='logout'),
     path('signup/', accounts_views.RegisterView, name='signup'),
-    path('tokens/', tokens_views.BuyTokensView, name='tokens')
+    path('tokens/', tokens_views.BuyTokensView, name='tokens'),
+    path('tokens/buy-play/', tokens_views.buy_play, name='buy_play')
 ]
