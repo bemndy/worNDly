@@ -45,10 +45,20 @@ class Guess(models.Model):
         return f"Game {self.game.id} | Attempt {self.attempt_number}: {self.word}"
     
 
+class UserPlayBank(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='play_bank')
+    plays_remaining = models.IntegerField(default=0)
+    last_reset = models.DateField()
+
+    def __str__(self):
+        return f"{self.user.username} | {self.plays_remaining} plays remaining"
+
+
 class DailyPlayCount(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='daily_plays')
     date = models.DateField()
     count = models.IntegerField(default=0)
+    purchased = models.IntegerField(default=0)
 
     class Meta:
         constraints = [

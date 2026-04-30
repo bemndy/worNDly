@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from datetime import date
 import json
-from .models import GameSession, Guess, DailyPlayCount
+from .models import GameSession, Guess, DailyPlayCount, UserPlayBank
 import random
 from django.views.decorators.http import require_POST
 from django.utils import timezone
@@ -15,7 +15,7 @@ from django.db.models import Count
 from django.conf import settings
 import os
 
-MAX_FREE_GAMES_PER_DAY = 100
+MAX_FREE_GAMES_PER_DAY = 3
 LANGUAGE_INFO = {
     'de': {'label': 'German'},
     'es': {'label': 'Spanish'},
@@ -32,10 +32,20 @@ def get_daily_record(user):
     today = date.today()
     obj, _ = DailyPlayCount.objects.get_or_create(user=user, date=today)
     return obj
-def increment_daily_count(user):
-    record = get_daily_record(user)
-    record.count += 1
-    record.save()
+
+def get_play_bank(user):
+    today = date.today()
+    bank, created = UserPlayBank.objects.get_or_create(
+        user=user,
+        defaults={'plays_remaining': MAX_FREE_GAMES_PER_DAY, 'last_reset': today}
+    )
+    # daily reset: only top up if below the free limit
+    if not created and bank.last_reset < today:
+        if bank.plays_remaining < MAX_FREE_GAMES_PER_DAY:
+            bank.plays_remaining = MAX_FREE_GAMES_PER_DAY
+        bank.last_reset = today
+        bank.save()
+    return bank
 
 def get_word_list(language):
     filepath = os.path.join(WORDS_DIR, f'{language}.txt')
@@ -84,8 +94,7 @@ def GameView(request):
 
 @login_required
 def language_select(request):
-    record = get_daily_record(request.user)
-    free_remaining = max(0, MAX_FREE_GAMES_PER_DAY - record.count)
+    bank = get_play_bank(request.user)
 
     now = timezone.now()
     period = request.GET.get('period', 'all')
@@ -131,10 +140,9 @@ def language_select(request):
 
     return render(request, 'game/language_select.html', {
         'language_info': LANGUAGE_INFO,
-        'played_today': record.count,
-        'free_remaining': free_remaining,
+        'free_remaining': bank.plays_remaining,
         'max_free': MAX_FREE_GAMES_PER_DAY,
-        'can_play': free_remaining > 0,
+        'can_play': bank.plays_remaining > 0,
         # dashboard 1
         'period': period,
         'total_played': total_played,
@@ -150,6 +158,9 @@ def language_select(request):
 
 @login_required
 def start_game(request, language):
+    bank = get_play_bank(request.user)
+    if bank.plays_remaining <= 0:
+        return redirect('language_select')
 
     words = get_word_list(language)
     chosen_word = random.choice(words)
@@ -160,7 +171,8 @@ def start_game(request, language):
         target_word=chosen_word,
     )
 
-    increment_daily_count(request.user)
+    bank.plays_remaining -= 1
+    bank.save()
     return redirect('play_game', game_id=game.id)
 
 @login_required
@@ -240,12 +252,5 @@ def submit_guess(request, game_id):
         'status': game.status,
     })
 
-@login_required
-def buy_plays(request):
-    record = get_daily_record(request.user)
-    return render(request, 'game/buy_plays.html', {
-        'played_today': record.count,
-        'max_free': MAX_FREE_GAMES_PER_DAY,
-    })
 
 

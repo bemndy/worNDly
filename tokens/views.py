@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect
 import requests
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
-from game.views import get_daily_record
+from game.views import get_play_bank
 
 # Create your views here.
 
@@ -68,9 +68,9 @@ def buy_play(request):
     if result is None:
         context['error'] = 'Purchase failed. Check your token balance.'
     else:
-        record = get_daily_record(request.user)
-        record.purchased += quantity
-        record.save()
+        bank = get_play_bank(request.user)
+        bank.plays_remaining += quantity
+        bank.save()
         context['success'] = f'Successfully purchased {quantity} play(s)!'
 
     return render(request, 'tokens/token_balance.html', context)
