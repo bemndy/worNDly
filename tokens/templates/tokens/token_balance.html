@@ -58,7 +58,7 @@
                 <label for="quantity" class="form-label text-uppercase fw-bold">How many plays?</label>
                 <input type="number" class="form-control" id="quantity" name="quantity" value="1" min="1" required>
             </div>
-            <button type="submit" class="btn btn-info text-white fw-bold text-uppercase w-100"
+            <button type="submit" class="btn btn-info text-white text-uppercase w-100"
                 {% if not current_player.amount %}disabled{% endif %}>
                 Buy Plays
             </button>
@@ -67,7 +67,7 @@
 
     <!-- Back -->
     <div class="w-75 mb-4">
-        <a href="{% url 'language_select' %}" class="btn btn-info text-white fw-bold text-uppercase w-100">Back to Game</a>
+        <a href="{% url 'language_select' %}" class="btn btn-dark text-white text-uppercase w-100">Back to Game</a>
     </div>
 
 </div>

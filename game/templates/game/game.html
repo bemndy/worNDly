@@ -3,30 +3,36 @@
 
 {% block content %}
 <style>
-  .wl-tile { text-transform: uppercase; user-select: none; }
-  .wl-tile[data-state="correct"] { background: #538d4e; border-color: #538d4e !important; color: #fff; }
-  .wl-tile[data-state="present"] { background: #b59f3b; border-color: #b59f3b !important; color: #fff; }
-  .wl-tile[data-state="absent"]  { background: #787c7e; border-color: #787c7e !important; color: #fff; }
+    .wl-tile { text-transform: uppercase; user-select: none; font-size: 2rem; font-weight: 800; }
+    .wl-tile[data-state="correct"] { background: #538d4e; border-color: #538d4e !important; color: #fff; }
+    .wl-tile[data-state="present"] { background: #b59f3b; border-color: #b59f3b !important; color: #fff; }
+    .wl-tile[data-state="absent"]  { background: #787c7e; border-color: #787c7e !important; color: #fff; }
 </style>
 
-<div class="d-flex flex-column justify-items-center">
-  <div class="container mt-5" style="max-width: 350px;">
-    {% for row in "012345" %}
-      <div class="row g-1 mb-1 justify-content-center" id="wl-row-{{ forloop.counter0 }}">
-        {% for col in "01234" %}
-          <div class="col-auto">
-            <div class="wl-tile border border-2 d-flex"
-                id="wl-tile-{{ forloop.parentloop.counter0 }}-{{ forloop.counter0 }}"
-                style="width: 58px; height: 58px">
-            </div>
-          </div>
-        {% endfor %}
-      </div>
-    {% endfor %}
+<!-- Game board -->
+<div class="d-flex flex-column align-items-center">
+    <div class="container mt-4" style="max-width: 350px;">
 
-    <!-- result screen -->
-    <p id="wl-reveal" class="text-center text-muted mt-3 text-uppercase fw-bold" style="display:none; letter-spacing:0.2em;"></p>
-    <a href="{% url 'language_select' %}" class="btn btn-info text-white fw-bold text-uppercase text-decoration-none mt-2">Play Again</a>
+        {% for row in "012345" %}
+            <div class="row g-1 mb-1 justify-content-center" id="wl-row-{{ forloop.counter0 }}">
+                {% for col in "01234" %}
+                    <div class="col-auto">
+                        <div class="wl-tile border border-2 d-flex align-items-center justify-content-center"
+                            id="wl-tile-{{ forloop.parentloop.counter0 }}-{{ forloop.counter0 }}"
+                            style="width: 58px; height: 58px">
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        <!-- Result -->
+        <p id="wl-message" class="text-center mt-3 text-uppercase fw-bold" style="display:none; letter-spacing:0.1em;"></p>
+        <p id="wl-reveal" class="text-center text-muted mt-1 text-uppercase fw-bold" style="display:none; letter-spacing:0.2em;"></p>
+        <a href="{% url 'language_select' %}" class="btn btn-info text-white text-uppercase text-decoration-none mt-2 w-100">Play Again</a>
+
+    </div>
+</div>
 
 <script>
     // Configuration from Django
@@ -38,127 +44,145 @@
     const CSRF         = "{{ csrf_token }}";
     const GUESS_URL    = "{% url 'submit_guess' game.id %}";
     const PREV_GUESSES = {{ guesses_json|safe }};
-    
+
     console.log(GAME_STATUS)
-    let gameOver    = GAME_STATUS !== 'active';
-    let currentRow  = PREV_GUESSES.length;
-    let currentCol  = 0;
+    let gameOver     = GAME_STATUS !== 'active';
+    let currentRow   = PREV_GUESSES.length;
+    let currentCol   = 0;
     let currentGuess = [];
 
-    console.log(`[worNDly] Target word: ${TARGET_WORD.toUpperCase()}`);
+    console.log(`[worDly] word: ${TARGET_WORD.toUpperCase()}`);
+
+    const tile = (r, c) => document.getElementById(`wl-tile-${r}-${c}`);
+
+    function showMessage(text, type) {
+        const el = document.getElementById('wl-message');
+        el.textContent = text;
+        el.className = `text-center mt-3 text-uppercase fw-bold text-${type}`;
+        el.style.display = 'block';
+    }
 
     function showReveal() {
-      const el = document.getElementById('wl-reveal');
-      el.textContent = TARGET_WORD.toUpperCase();
-      el.style.display = 'block';
+        const el = document.getElementById('wl-reveal');
+        el.textContent = TARGET_WORD.toUpperCase();
+        el.style.display = 'block';
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      console.log(PREV_GUESSES)
+        console.log(PREV_GUESSES)
         PREV_GUESSES.forEach((guess, rowIndex) => {
             console.log(guess, rowIndex)
             const letters = guess.word.split('');
             letters.forEach((char, colIndex) => {
-                const tile = document.getElementById(`wl-tile-${rowIndex}-${colIndex}`);
-                if (tile) {
-                    tile.textContent = char;
-                    tile.dataset.state = guess.result[colIndex];
+                const t = tile(rowIndex, colIndex);
+                if (t) {
+                    t.textContent = char;
+                    t.dataset.state = guess.result[colIndex];
                 }
             });
         });
 
         if (GAME_STATUS !== 'active') {
-          const won = PREV_GUESSES.some(g => g.result.every(s => s === 'correct'));
-          if (!won) showReveal();
+            const won = PREV_GUESSES.some(g => g.result.every(s => s === 'correct'));
+            if (!won) showReveal();
         }
     });
 
-    const tile = (r, c) => document.getElementById(`wl-tile-${r}-${c}`);
-
     const setTile = (r, c, letter, state) => {
-      const t = tile(r, c);
-      t.textContent = letter.toUpperCase();
+        const t = tile(r, c);
+        t.textContent = letter.toUpperCase();
+    }
+
+    function clearMessage() {
+        const el = document.getElementById('wl-message');
+        el.style.display = 'none';
     }
 
     function addLetter(ch) {
-      if(gameOver || currentCol >= 5) {return}
-      const t = tile(currentRow, currentCol);
-      t.textContent = ch.toUpperCase();
-      currentGuess.push(ch);
-      currentCol++;
+        if (gameOver || currentCol >= 5) { return }
+        clearMessage();
+        const t = tile(currentRow, currentCol);
+        t.textContent = ch.toUpperCase();
+        currentGuess.push(ch);
+        currentCol++;
     }
 
     function removeLetter() {
-      if (gameOver || currentCol <= 0) return;
-      currentCol--;
-      currentGuess.pop();
-      const t = tile(currentRow, currentCol);
-      t.textContent = '';
+        if (gameOver || currentCol <= 0) return;
+        currentCol--;
+        currentGuess.pop();
+        const t = tile(currentRow, currentCol);
+        t.textContent = '';
     }
 
     async function submitGuess() {
-      if (gameOver) return;
-      if (currentGuess.length < 5) {
-        return;
-      }
-
-      const word = currentGuess.join('');
-      if (!WORD_LIST.has(word)) {
-        return
-      }
-
-      gameOver = true; // lock everything
-
-      try {
-        const res  = await fetch(GUESS_URL, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
-          body: JSON.stringify({word}),
-        });
-
-        if (!res.ok) {
-            console.log('Something went wrong');
-          gameOver = false;
+        if (gameOver) return;
+        if (currentGuess.length < 5) {
             return;
         }
 
-        const data = await res.json()
-        console.log('Server response:', JSON.stringify(data)); // Add this
-
-        data.result.forEach((state, i) => {
-          const t = tile(currentRow, i);
-          t.dataset.state = state;  // "correct", "present", or "absent"
-        });
-
-        if(data.game_over) {
-          gameOver = true;
-          const won = data.result.every(s => s === 'correct');
-          if (!won) showReveal();
-        }
-        else {
-          gameOver = false;
+        const word = currentGuess.join('');
+        if (!WORD_LIST.has(word)) {
+            showMessage('Not in word list', 'danger');
+            return;
         }
 
-        currentRow++;
-        currentCol = 0;
-        currentGuess = [];
-      } catch (err) {
-        gameOver = false;
-        console.log(err)
-      }
+        gameOver = true; // lock everything
+
+        try {
+            const res = await fetch(GUESS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+                body: JSON.stringify({ word }),
+            });
+
+            if (!res.ok) {
+                console.log('Something went wrong');
+                showMessage('Something went wrong', 'danger');
+                gameOver = false;
+                return;
+            }
+
+            const data = await res.json()
+            console.log('Server response:', JSON.stringify(data));
+
+            data.result.forEach((state, i) => {
+                const t = tile(currentRow, i);
+                t.dataset.state = state;
+            });
+
+            if (data.game_over) {
+                gameOver = true;
+                const won = data.result.every(s => s === 'correct');
+                if (won) {
+                    showMessage(`You got it in ${currentRow + 1}!`, 'success');
+                } else {
+                    showMessage('Better luck next time!', 'danger');
+                    showReveal();
+                }
+            } else {
+                gameOver = false;
+            }
+
+            currentRow++;
+            currentCol = 0;
+            currentGuess = [];
+        } catch (err) {
+            gameOver = false;
+            console.log(err)
+        }
     }
 
     document.addEventListener('keydown', e => {
-      if (/^[a-zA-Z]$/.test(e.key)) {
-        console.log('key down')
-        addLetter(e.key.toLowerCase());
-      }
-      else if (e.key === 'Backspace') {
-        removeLetter();
-      }
-      else if(e.key === 'Enter') {
-        submitGuess();
-      }
+        if (/^[a-zA-Z]$/.test(e.key)) {
+            console.log('key down')
+            addLetter(e.key.toLowerCase());
+        } else if (e.key === 'Backspace') {
+            removeLetter();
+        } else if (e.key === 'Enter') {
+            submitGuess();
+        }
     });
 </script>
+
 {% endblock %}

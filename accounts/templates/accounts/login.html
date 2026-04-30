@@ -2,6 +2,7 @@
 {% block title %}Login - worNDly{% endblock %}
 {% block content %}
 
+<!-- Login form -->
 <div class="container">
     <div class="d-flex justify-content-center vh-100 pt-5">
         <div class="col-md-5">
@@ -25,8 +26,8 @@
                     <input type="password" class="form-control" id="password" name="password" required>
                 </div>
                 <div class="d-grid gap-3">
-                    <button type="submit" class="btn btn-info text-white fw-bold text-uppercase">Log In</button>
-                    <a href="{% url 'signup' %}" class="btn btn-secondary text-white fw-bold text-uppercase text-decoration-none w-100">Create Account</a>
+                    <button type="submit" class="btn btn-info text-white text-uppercase">Log In</button>
+                    <a href="{% url 'signup' %}" class="btn btn-dark text-white text-uppercase text-decoration-none w-100">Create Account</a>
                 </div>
             </form>
 

@@ -2,6 +2,7 @@
 {% block title %}Register - worNDly{% endblock %}
 {% block content %}
 
+<!-- Register form -->
 <div class="container">
     <div class="d-flex justify-content-center mt-5 vh-100">
         <div class="col-md-5">
@@ -29,8 +30,8 @@
                     <input type="password" class="form-control" id="password" name="password" required>
                 </div>
                 <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-info text-white fw-bold text-uppercase">Create Account</button>
-                    <a href="{% url 'login' %}" class="btn btn-secondary text-white fw-bold text-uppercase text-decoration-none w-100">Already have an account? Log In</a>
+                    <button type="submit" class="btn btn-info text-white text-uppercase">Create Account</button>
+                    <a href="{% url 'login' %}" class="btn btn-dark text-white text-uppercase text-decoration-none w-100">Already have an account? Log In</a>
                 </div>
             </form>
 

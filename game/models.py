@@ -54,19 +54,3 @@ class UserPlayBank(models.Model):
         return f"{self.user.username} | {self.plays_remaining} plays remaining"
 
 
-class DailyPlayCount(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='daily_plays')
-    date = models.DateField()
-    count = models.IntegerField(default=0)
-    purchased = models.IntegerField(default=0)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'date'],
-                name='unique_user_date'
-            )
-        ]
-
-    def __str__(self):
-        return f"{self.user.username} | {self.date} | {self.count} plays"
