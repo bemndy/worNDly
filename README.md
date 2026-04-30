@@ -61,19 +61,19 @@ Windows:
 ### 4. Install Dependencies
 
 ```bash
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 ### 5. Apply Database Migrations
 
 ```bash
-python manage.py migrate
+python3 manage.py migrate
 ```
 
 ### 6. Create a Superuser (Optional)
 
 ```bash
-python manage.py createsuperuser
+python3 manage.py createsuperuser
 ```
 
 ### 7. Get your access token
@@ -97,14 +97,15 @@ cp .env.template .env
 ```
 
 Inside the .env file, fill in the ACCESS_TOKEN variable
+
 ```bash
 ACCESS_TOKEN={your access token}
 ```
 
-### . Run the Development Server
+### 9. Run the Development Server
 
 ```bash
-python manage.py runserver
+python3 manage.py runserver
 ```
 
 Open your browser and go to:
@@ -121,6 +122,7 @@ worNDly/
 ├── manage.py
 ├── requirements.txt
 ├── db.sqlite3
+├── .env.template
 │
 ├── config/
 │   ├── settings.py
@@ -128,29 +130,75 @@ worNDly/
 │   ├── asgi.py
 │   └── wsgi.py
 │
+├── templates/
+│   └── base.html
+│
+├── static/
+│   ├── css/
+│   │   └── style.css
+│   └── images/
+│       └── worNDly_logo.png
+│
 ├── accounts/
+│   ├── views.py
+│   ├── models.py
+│   ├── forms.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations/
+│   └── templates/
+│       └── accounts/
+│           ├── login.html
+│           └── register.html
+│
+├── game/
 │   ├── views.py
 │   ├── models.py
 │   ├── admin.py
 │   ├── apps.py
 │   ├── migrations/
 │   └── templates/
-│       ├── base.html
-│       └── accounts/
-│           ├── register.html
-│           ├── login.html
-│           └── logout.html
+│       └── game/
+│           ├── game.html
+│           └── language_select.html
 │
-└── game/
-    ├── views.py
-    ├── models.py
-    ├── admin.py
-    ├── apps.py
-    ├── migrations/
-    └── templates/
-        ├── base.html
-        └── game/
-            └── game.html
+├── tokens/
+│   ├── views.py
+│   ├── models.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations/
+│   └── templates/
+│       └── tokens/
+│           └── token_balance.html
+│
+└── words/
+    ├── en.txt
+    ├── es.txt
+    ├── fr.txt
+    ├── de.txt
+    └── pt.txt
+```
+
+# URL Structure
+
+```
+/                               Home (redirects based on auth)
+│
+├── login/                      Login page (logged out)
+├── logout/                     Logout (not valid page *django class-based)
+├── signup/                     Register page (logged out)
+│
+├── game/                       Game dashboard / history & stats (logged in)
+├── game/select/                Language selection (logged in)
+├── game/<language>/start/      Start a new game (logged in)
+├── game/<game_id>/play/        Active game board (logged in)
+├── game/<game_id>/guess/       Submit a guess (logged in)
+│
+├── tokens/                     Token store / buy plays (logged in)
+├── tokens/buy-play/            Purchase a play (end point redirect)
+│
+└── admin/                      Django admin panel (superuser)
 ```
 
 # Phase 2 Deliverables
