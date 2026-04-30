@@ -76,6 +76,8 @@ python3 manage.py migrate
 python3 manage.py createsuperuser
 ```
 
+> **Note for TAs/Graders:** A `.env` file with our group's access token is already included in the repository. You can skip steps 7 and 8.
+
 ### 7. Get your access token
 
 ```bash
@@ -88,7 +90,7 @@ The response will be in the format of
 {"refresh":"a-refresh-token","access":"an-access-token"}
 ```
 
-Copy the token with of the "access" attribute
+Copy the value of the "access" attribute
 
 ### 8. Create a .env file with .env.template
 

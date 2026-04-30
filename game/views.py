@@ -72,7 +72,6 @@ def evaluate_guess(guess_word, target_word):
             target[target.index(guess[i])] = None
 
 
-    print(result)
     return result
 
 
