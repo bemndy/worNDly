@@ -76,7 +76,32 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
-### 7. Run the Development Server
+### 7. Get your access token
+
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"username": "your username", "password": "your password"}' https://jcssantos.pythonanywhere.com/api/token/
+```
+
+The response will be in the format of
+
+```bash
+{"refresh":"a-refresh-token","access":"an-access-token"}
+```
+
+Copy the token with of the "access" attribute
+
+### 8. Create a .env file with .env.template
+
+```bash
+cp .env.template .env
+```
+
+Inside the .env file, fill in the ACCESS_TOKEN variable
+```bash
+ACCESS_TOKEN={your access token}
+```
+
+### . Run the Development Server
 
 ```bash
 python manage.py runserver
@@ -85,7 +110,7 @@ python manage.py runserver
 Open your browser and go to:
 
 ```
-http://127.0.0.1:8000/
+http://localhost:8000/
 ```
 
 # Project Structure
@@ -128,12 +153,12 @@ worNDly/
             └── game.html
 ```
 
-# Phase 1 Deliverables
+# Phase 2 Deliverables
 
 | Deliverable | Location |
 |-------------|----------|
-| Phase 1 Report | `Phase_1_Report_Group22.pdf` (root of repo and Gradescope) |
-| Source Code | Root of repo (`config/`, `accounts/`, `game/`) |
+| Phase 2 Report | `Phase_2_Report_Group22.pdf` (root of repo and Gradescope) |
+| Source Code | Root of repo (`config/`, `accounts/`, `game/`, `tokens`) |
 | README | `README.md` |
 | CONTRIBUTIONS | `CONTRIBUTIONS.md` |
 
@@ -141,4 +166,8 @@ worNDly/
 
 1.1 (Create User Profile),
 1.2 (Log-in),
-1.3 (Log-out)
+1.3 (Log-out),
+2.1 (Play Game),
+3.1 (View all prior plays),
+3.2 (Viewing basic statistics),
+4.1 (Buying more games)
