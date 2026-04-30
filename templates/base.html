@@ -11,10 +11,8 @@
     <title>{% block title %}worNDly{% endblock %}</title>
 </head>
 <body>
-    <div class="text-center py-3 mb-2 border-bottom border-2 border-dark">
-        <h1 class="display-5 fw-bold text-fancy" style="letter-spacing: 0.15em;">
-        worNDly
-        </h1>
+    <div class="text-center" style="overflow: hidden; height: 220px;">
+        <img src="{% static 'images/worNDly_logo_transparent.png' %}" alt="worNDly" style="height: 300px; display: block; margin: 0 auto; transform: translateY(-50px);">
     </div>
     {% block content %}
     {% endblock %}

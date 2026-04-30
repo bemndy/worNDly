@@ -1,9 +1,8 @@
-from django.db import models
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from datetime import date
 import json
-from .models import GameSession, Guess, DailyPlayCount, UserPlayBank
+from .models import GameSession, Guess, UserPlayBank
 import random
 from django.views.decorators.http import require_POST
 from django.utils import timezone
@@ -28,11 +27,6 @@ MAX_ATTEMPTS = 6
 
 
 ### HELPERS ###
-def get_daily_record(user):
-    today = date.today()
-    obj, _ = DailyPlayCount.objects.get_or_create(user=user, date=today)
-    return obj
-
 def get_play_bank(user):
     today = date.today()
     bank, created = UserPlayBank.objects.get_or_create(
@@ -98,11 +92,24 @@ def language_select(request):
 
     now = timezone.now()
     period = request.GET.get('period', 'all')
-    completed_games = GameSession.objects.filter(
-        user=request.user,
-        status__in=['won', 'lost'], # no active games
-    )
 
+    all_games = GameSession.objects.filter(user=request.user, status__in=['won', 'lost'])
+
+    total_played = all_games.count()
+    total_won    = all_games.filter(status='won').count()
+    win_rate     = round((total_won / total_played * 100)) if total_played else 0
+
+    attempt_dist_qs = (
+        all_games
+        .filter(status='won')
+        .values('attempts_used')
+        .annotate(total=Count('attempts_used'))
+        .order_by()
+    )
+    attempt_dict = {row['attempts_used']: row['total'] for row in attempt_dist_qs}
+    attempt_dist_list = [attempt_dict.get(i, 0) for i in range(1, 7)]
+
+    completed_games = all_games
     if period == 'week':
         completed_games = completed_games.filter(completed_at__gte=now - timedelta(weeks=1))
     elif period == 'month':
@@ -111,22 +118,6 @@ def language_select(request):
         completed_games = completed_games.filter(completed_at__gte=now - timedelta(days=365))
 
     completed_games = completed_games.order_by('-completed_at')
-    total_played = completed_games.count()
-    total_won    = completed_games.filter(status='won').count()
-    win_rate     = round((total_won / total_played * 100)) if total_played else 0
-
-
-    attempt_dist_qs = (
-        completed_games
-        .filter(status='won')
-        .values('attempts_used')
-        .annotate(total=Count('attempts_used'))
-        .order_by() 
-    )
-
-    attempt_dict = {row['attempts_used']: row['total'] for row in attempt_dist_qs}
-    attempt_dist_list = [attempt_dict.get(i, 0) for i in range(1, 7)]
-
 
     plays = []
     for game in completed_games:

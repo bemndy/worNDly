@@ -22,8 +22,7 @@ from game import views as game_views
 from accounts import views as accounts_views
 from tokens import views as tokens_views
 
-# Using the redirect in game/views.py to check AUTH status and redirect to login if not logged in
-# Also using it for the "" root URL to redirect to /game if logged in, or /login if not logged in 
+# using redirect in games, account, tokens for AUTH
 
 def home(request):
     if request.user.is_authenticated:
@@ -33,11 +32,15 @@ def home(request):
 urlpatterns = [
     path('', home, name='home'),
     path('admin/', admin.site.urls),
+
+    # game app
     path('game/', game_views.GameView, name='game'),
     path('game/select/', game_views.language_select, name='language_select'),
     path('game/<str:language>/start/', game_views.start_game, name='start_game'),
     path('game/<int:game_id>/play/', game_views.play_game, name='play_game'),
     path('game/<int:game_id>/guess/', game_views.submit_guess, name='submit_guess'),
+
+    # accounts app (auth)
     path('login/', LoginView.as_view(
         template_name='accounts/login.html',
         next_page='/game/',
@@ -45,6 +48,8 @@ urlpatterns = [
     ), name='login'),
     path('logout/', LogoutView.as_view(next_page='/login/'), name='logout'),
     path('signup/', accounts_views.RegisterView, name='signup'),
+
+    # tokens app
     path('tokens/', tokens_views.BuyTokensView, name='tokens'),
     path('tokens/buy-play/', tokens_views.buy_play, name='buy_play')
 ]
