@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Play - worNDly{% endblock %}
+{% block content %}
+
+<!-- Chart.js import -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<!-- Stats + language select -->
+<div class="d-flex flex-row justify-content-center border border-2 border-dark p-4 gap-5 w-75 mx-auto mt-4">
+
+    <!-- Statistics panel -->
+    <div class="d-flex flex-column p-4 w-40 gap-4">
+        <h3 class="text-uppercase fw-bold">Statistics</h3>
+
+        <div class="d-flex flex-row gap-5">
+            <div class="d-flex flex-column">
+                <h1 class="display-2">{{ total_played }}</h1>
+                <h5 class="text-center text-muted">Played</h5>
+            </div>
+            <div class="d-flex flex-column">
+                <h1 class="display-2">{{ win_rate }}</h1>
+                <h5 class="text-center text-muted">Win %</h5>
+            </div>
+        </div>
+
+        <div style="width:400px;">
+            <canvas id="distributionChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Language select + actions -->
+    <div class="d-flex flex-column p-4 w-40 gap-4">
+        {% if can_play %}
+            <div class="list-group gap-3">
+                <h4 class="text-uppercase fw-bold">Choose your language:</h4>
+                <div>
+                    {% for code, info in language_info.items %}
+                        <a class="list-group-item list-group-item-action" href="{% url 'start_game' code %}">
+                            <span>{{ info.label }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <div>
+                <h5>Daily limit reached</h5>
+            </div>
+        {% endif %}
+
+        <div>
+            <span class="text-muted text-center fs-5">
+                You have {{ free_remaining }} plays remaining
+            </span>
+        </div>
+
+        <!-- Actions -->
+        <a href="{% url 'tokens' %}" class="btn btn-info text-white text-uppercase text-decoration-none w-100">Buy More Plays</a>
+        <form method="post" action="{% url 'logout' %}" class="w-100">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-dark text-white text-uppercase w-100">Logout</button>
+        </form>
+    </div>
+
+</div>
+
+<!-- Game history -->
+<div class="d-flex flex-column mt-6 border border-2 border-dark p-4 w-75 gap-4 mx-auto mb-5" style="margin-top: 3rem;">
+    <h3 class="display-5 text-center">Game History</h3>
+    <!-- Period filter -->
+    <ul class="nav nav-pills gap-3 mb-3">
+        <span class="text-uppercase fw-bold">Show:</span>
+        <a href="?period=week"  class="text-info text-decoration-none text-uppercase {% if period == 'week'  %}fw-bold{% endif %}">Last week</a>
+        <a href="?period=month" class="text-info text-decoration-none text-uppercase {% if period == 'month' %}fw-bold{% endif %}">Last month</a>
+        <a href="?period=year"  class="text-info text-decoration-none text-uppercase {% if period == 'year'  %}fw-bold{% endif %}">Last year</a>
+        <a href="?period=all"   class="text-info text-decoration-none text-uppercase {% if period == 'all' or not period %}fw-bold{% endif %}">All time</a>
+    </ul>
+    {% for entry in plays %}
+        <ul class="list-unstyled d-flex flex-row gap-2 align-items-center">
+            <span class="text-muted text-bg-light text-uppercase">{{ entry.date }}</span>
+            <span class="badge bg-info text-white text-uppercase">{{ entry.word }}</span>
+            {% if entry.passed %}
+                <span class="badge bg-success">Won</span>
+            {% else %}
+                <span class="badge bg-danger">Lost</span>
+            {% endif %}
+            <span class="text-muted text-bg-light text-uppercase">Attempts: {{ entry.attempts }}</span>
+        </ul>
+    {% empty %}
+        <p>No games played in this period.</p>
+    {% endfor %}
+</div>
+
+<!-- Chart.js configuration -->
+<script>
+    const django_data = {{ attempt_dist_json|safe }}
+
+    let ctx = document.getElementById('distributionChart').getContext('2d');
+    let distributionChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['1', '2', '3', '4', '5', '6'],
+            datasets: [{
+                label: 'Number of Attempts Distribution',
+                data: django_data,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 159, 64, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Guess Distribution'
+                },
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+
+{% endblock %}
