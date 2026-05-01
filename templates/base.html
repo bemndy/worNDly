@@ -11,9 +11,13 @@
     <title>{% block title %}worNDly{% endblock %}</title>
 </head>
 <body>
+
+    <!-- Logo styling and html -->
     <div class="text-center" style="overflow: hidden; height: 220px;">
         <img src="{% static 'images/worNDly_logo_transparent.png' %}" alt="worNDly" style="height: 300px; display: block; margin: 0 auto; transform: translateY(-50px);">
     </div>
+
+
     {% block content %}
     {% endblock %}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

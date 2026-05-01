@@ -6,8 +6,6 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from game.views import get_play_bank
 
-# Create your views here.
-
 # get token from environment variable
 ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')
 

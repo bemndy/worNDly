@@ -3,6 +3,7 @@
 
 {% block content %}
 <style>
+    /* Title styling classes */
     .wl-tile { text-transform: uppercase; user-select: none; font-size: 2rem; font-weight: 800; }
     .wl-tile[data-state="correct"] { background: #538d4e; border-color: #538d4e !important; color: #fff; }
     .wl-tile[data-state="present"] { background: #b59f3b; border-color: #b59f3b !important; color: #fff; }
@@ -62,12 +63,14 @@
         el.style.display = 'block';
     }
 
+    // Reveal the target word at the end of the game
     function showReveal() {
         const el = document.getElementById('wl-reveal');
         el.textContent = TARGET_WORD.toUpperCase();
         el.style.display = 'block';
     }
 
+    // Initialize the board with previous guesses
     document.addEventListener('DOMContentLoaded', () => {
         console.log(PREV_GUESSES)
         PREV_GUESSES.forEach((guess, rowIndex) => {
@@ -88,6 +91,7 @@
         }
     });
 
+    // Helper to set a tile's letter and state
     const setTile = (r, c, letter, state) => {
         const t = tile(r, c);
         t.textContent = letter.toUpperCase();

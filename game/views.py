@@ -71,11 +71,7 @@ def evaluate_guess(guess_word, target_word):
             result[i] = 'present'
             target[target.index(guess[i])] = None
 
-
     return result
-
-
-
 
 ### Requests ###
 def GameView(request):
@@ -85,6 +81,7 @@ def GameView(request):
     return redirect('language_select')
 
 
+# login required for all game views since they are tied to user progress and stats
 @login_required
 def language_select(request):
     bank = get_play_bank(request.user)
@@ -187,6 +184,11 @@ def play_game(request, game_id):
 @login_required
 @require_POST
 def submit_guess(request, game_id):
+    """
+    The `submit_guess` function processes a user's guess in a word game, checking the validity of the
+    guess and updating the game status accordingly.
+    """
+    
     game = get_object_or_404(GameSession, id=game_id, user=request.user)
     if game.status != 'active':
         return JsonResponse({'error': 'Game is already over.'}, status=400)
@@ -231,7 +233,6 @@ def submit_guess(request, game_id):
 
     game.save()
 
-
     return JsonResponse({
         'result': result,
         'word': guess_word,
@@ -241,6 +242,3 @@ def submit_guess(request, game_id):
         'target_word': game.target_word if game_over else None,
         'status': game.status,
     })
-
-
-
